@@ -1,0 +1,3 @@
+Project ideas that might be really good for me:
+Statistics regarding demographics of people who need PT/OT.
+Predicting what areas of FL/Hillsborough/Tampa/ZipCodes are most likely to need PT/OT. (Look at census data)
