@@ -13,7 +13,7 @@ Prevalence = Decimal(input("How many affected?: "))*ConvertStat
 print("Prevalence:", Prevalence, "per", Unit_measurement, "people affected.")
 
 Incidence = Decimal(input("How many new people affected?: "))*ConvertStat
-print("Incidence: ",Incidence, "new cases per", Unit_measurement, "people.")
+print("Incidence:",Incidence, "new cases per", Unit_measurement, "people.")
 
 MortalityRate=Decimal(input("How many people died?: "))*ConvertStat
 print("Mortality Rate:", MortalityRate, "deaths per", Unit_measurement, "people.")
