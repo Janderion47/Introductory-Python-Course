@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Sep  8 09:43:06 2025
-
-@author: jadenpaula
-"""
 
 from decimal import Decimal, getcontext
 #from uncertainties import ufloat
@@ -39,6 +34,8 @@ while CalcYearsLost:
         try:
             question1=int(input("What was the age of a person who died? (Provide no answer if no ages are known): "))
             difference=LifeExpectation-question1
+            if difference<0:
+                difference=0
             print("This person lost", difference, "years of life")
         except ValueError:
             CalcYearsLost = False
