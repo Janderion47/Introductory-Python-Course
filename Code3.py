@@ -23,8 +23,8 @@ for i in Meeow:
 print("The number of vowels in that input is {}".format(vowelcount))
 # A 'for' loop takes every element in a variable (string,etc)
 # and works with each one to do some operation.
-# This 'for' loop will look at every letter in the input and will increment
-# the 'vowelcount' variable by 1.
+# This 'for' loop will look at every letter in the input and will
+# increment the 'vowelcount' variable by 1.
 
 # Problem 5
 Meeeow=input("Provide a word please.")
