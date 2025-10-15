@@ -54,6 +54,7 @@ data_points = [
     (2019, 82.5)]
 
 linregdata = linreg(data_points)
+print(linregdata)
 lr_slope = linregdata[0]
 lr_yint = linregdata[1]
 
