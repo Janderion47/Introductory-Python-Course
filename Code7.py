@@ -17,18 +17,16 @@ def linreg(points): # Expects each point as list of [x,y]
     x_mean = cm(x_items)
     y_mean = cm(y_items)
 
-    linreg_numer = 0
-    linreg_denom = 0
+    numer = 0
+    denom = 0
     for i in data_points:
-        linreg_numer+=(i[0]-x_mean)*(i[1]-y_mean)
-        linreg_denom+=((i[0]-x_mean)**2)
+        numer+=(i[0]-x_mean)*(i[1]-y_mean)
+        denom+=((i[0]-x_mean)**2)
 
-    slope = linreg_numer/linreg_denom
-    int = y_mean - (slope*x_mean)
+    slope = numer/denom
+    yint = y_mean - (slope*x_mean)
     
-    return slope, int
-        
-    
+    return slope, yint
 
 def make_prediction(data_point, m, yint):
     return (data_point*m)+yint
@@ -61,7 +59,6 @@ lr_yint = linregdata[1]
 
 
 keep_going=True
-
 while keep_going:
     try:
         newdata = float(input("New 'x' value to predict the 'y'? Enter nothing to stop the program. "))
