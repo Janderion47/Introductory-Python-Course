@@ -28,8 +28,8 @@ def linreg(points): # Expects each point as list of [x,y]
     
     return slope, yint
 
-def make_prediction(data_point, m, yint):
-    return (data_point*m)+yint
+def make_prediction(xdata, m, yint):
+    return (xdata*m)+yint
 
 data_points = [
     (2000, 72.5),
