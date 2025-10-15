@@ -7,6 +7,29 @@ def cm(datain): # Calculate Mean
     
     return suma/count
 
+def linreg(points): # Expects each point as list of [x,y]
+    x_items = []
+    y_items = []
+    for i in points:
+        x_items.append(i[0])
+        y_items.append(i[1])
+    
+    x_mean = cm(x_items)
+    y_mean = cm(y_items)
+
+    linreg_numer = 0
+    linreg_denom = 0
+    for i in data_points:
+        linreg_numer+=(i[0]-x_mean)*(i[1]-y_mean)
+        linreg_denom+=((i[0]-x_mean)**2)
+
+    slope = linreg_numer/linreg_denom
+    int = y_mean - (slope*x_mean)
+    
+    return slope, int
+        
+    
+
 def make_prediction(data_point, m, yint):
     return (data_point*m)+yint
 
@@ -32,23 +55,16 @@ data_points = [
     (2018, 82.0),
     (2019, 82.5)]
 
-x_items = []
-y_items = []
-for i in data_points:
-    x_items.append(i[0])
-    y_items.append(i[1])
+linregdata = linreg(data_points)
+lr_slope = linregdata[0]
+lr_yint = linregdata[1]
 
-x_mean = cm(x_items)
-y_mean = cm(y_items)
 
-linreg_numer = 0
-linreg_denom = 0
-for i in data_points:
-    linreg_numer+=(i[0]-x_mean)*(i[1]-y_mean)
-    linreg_denom+=((i[0]-x_mean)**2)
+keep_going=True
 
-linreg_slope = linreg_numer/linreg_denom
-linreg_int = y_mean - (linreg_slope*x_mean)
-
-newdata = float(input("New 'x' value to predict the 'y'?"))
-print(make_prediction(newdata,linreg_slope,linreg_int))
+while keep_going:
+    try:
+        newdata = float(input("New 'x' value to predict the 'y'? Enter nothing to stop the program. "))
+        print(make_prediction(newdata,lr_slope,lr_yint))
+    except ValueError:
+       keep_going=False
