@@ -156,30 +156,43 @@ class GridCell:
         
 
 if __name__ == "__main__":
-    lat_0 = 27.91
-    lon_0 = -82.35
     
-    bm = Basemap(width=28000000,height=28000000,projection="aeqd",lat_0=lat_0,lon_0=lon_0,resolution="f")   # default: projection='cyl'
-    #print(bm.is_land(99.675, 13.104))
-    #print(bm.is_land(100.539, 13.104))
-    
+    # Parameters
     shelter_gps_uncert = 0.0000005 # Derived from the gps website is assumed 0.00000005
     
-    grid_x_n = 100 # Pertains to cutting up the longitude
-    grid_y_n = 100 # Pertains to cutting up the latitude
+    grid_x_n = 1000 # Pertains to cutting up the longitude
+    grid_y_n = 1000 # Pertains to cutting up the latitude
+    
     maxNorth= ufloat(28.1724342,0.0000001)
     minSouth= ufloat(27.6463871,0.0000001)
     maxWest = ufloat(-82.6511685,0.0000001)
     minEast = ufloat(-82.0553083,0.0000001)
     
+    # Mapping Parameters
+    map_center_lat = (maxNorth.nominal_value+minSouth.nominal_value)/2
+    map_center_lon = (maxWest.nominal_value+minEast.nominal_value)/2
+    
+    # Starting up the mapping module.
+    # Necessary for figuring out what grid cells are on land or on water.
+    timemapstart = time.time()
+    print(f"{timemapstart-timestart} sec: Booting up the map")
+    bm = Basemap(width=28000000,height=28000000,
+                 projection="aeqd",
+                 lat_0=map_center_lat,
+                 lon_0=map_center_lon,
+                 resolution="f")   # default: projection='cyl'
+    timemapend= time.time()
+    print(f"{timemapend-timestart} sec: Map done loading")
+    
+    # Calculations for cell lat-lon bounds
     rangeNS = maxNorth - minSouth
     rangeEW = maxWest - minEast
     
     delta_y = rangeNS / grid_y_n
     delta_x = rangeEW / grid_x_n
     
-    AllCells = list()
     
+    AllCells = list()
     for i in range(grid_x_n): # Creates the grid of geographic cells
         for j in range(grid_y_n):
             Sbound = minSouth.nominal_value + (j*delta_y.nominal_value)
@@ -188,33 +201,53 @@ if __name__ == "__main__":
             Ebound = maxWest.nominal_value + ((i+1)*delta_x.nominal_value)
             xpt, ypt = bm((Wbound+Ebound)/2,(Nbound+Sbound)/2)
             if bm.is_land(xpt,ypt) == True:
-                AllCells.append(GridCell(Nbound,Sbound,Wbound,Ebound,shelter_gps_uncert))
-                print("Land")
+                AllCells.append(GridCell(Nbound,Sbound,
+                                         Wbound,Ebound,
+                                         shelter_gps_uncert))
             else:
                 pass
+            
+            print(i,j)
+        
+        
+    print(f"The number of grid cells on land is {len(AllCells)} out of a possible {grid_x_n*grid_y_n}; {len(AllCells)*100/(grid_x_n*grid_y_n)}%")
+    timegridcheckend = time.time()
+    print(f"{timegridcheckend-timestart} sec: Grid cells check done")
     
-    #TODO He will be back tomorrow or tuesday
-    print(f"Number of cells not in water: {len(AllCells)}")
-    
+    timedistcheckstart = time.time()
+    print(f"{timedistcheckstart-timestart} sec: Beginning to calculate distances of grid cells to the landmarks")
     setAllRepeaterDist = list()
     setAllShelterDist = list()
-    
     for CellInGrid in AllCells: # Actually performs the fun
         CellInGrid.distAllRadios()
         CellInGrid.distAllShelters()
         
         setAllRepeaterDist.append(CellInGrid.repeater_closest[1])
         setAllShelterDist.append(CellInGrid.shelter_closest[1])
-        
-        #print(setAllRepeaterDist.append(CellInGrid.repeater_closest[1]))
     
-    percentiles_to_calc = [0,10,20,30,40,50,60,70,80,90,100]
-    calculated_percentiles_rept = np.percentile(setAllRepeaterDist, percentiles_to_calc)
-    calculated_percentiles_shel = np.percentile(setAllShelterDist, percentiles_to_calc)
+    timedistcheckend = time.time()
+    print(f"{timedistcheckend-timestart} sec: Distance calculations done")
+    
+    percentiles_to_calc = np.linspace(0, 100, 100+1)
+    
+    calculated_percentiles_rept = np.percentile(setAllRepeaterDist,
+                                                percentiles_to_calc)
+    calculated_percentiles_shel = np.percentile(setAllShelterDist,
+                                                percentiles_to_calc)
+    print(f"Percentiles to calculate: {percentiles_to_calc}")
     print(calculated_percentiles_rept)
     print(calculated_percentiles_shel)
     
-    plt.scatter(np.array(percentiles_to_calc), np.array(calculated_percentiles_shel))
+    plt.plot(np.array(percentiles_to_calc),
+                np.array(calculated_percentiles_rept),
+                label="Distance to Major Amateur Radio Repeaters")
+    plt.plot(np.array(percentiles_to_calc),
+                np.array(calculated_percentiles_shel),
+                label="Distance to Hurricane Shelters")
+    plt.title(f"Percentiles of the Distances from locations throughout Hillsborough County, FL. (Grid of {grid_x_n} by {grid_y_n})")
+    plt.xlabel("Percentile")
+    plt.ylabel("Value of the Percentile (miles)")
+    plt.legend()
     plt.show()
 
 timeend = time.time()
