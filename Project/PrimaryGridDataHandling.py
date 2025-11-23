@@ -155,13 +155,18 @@ class GridCell:
         self.shelter_closest = [name,dist_low]
         
 
+
+def timef(tofix):
+    fixed = format(tofix,".4",)
+    return fixed
+
 if __name__ == "__main__":
     
     # Parameters
     shelter_gps_uncert = 0.0000005 # Derived from the gps website is assumed 0.00000005
     
-    grid_x_n = 1000 # Pertains to cutting up the longitude
-    grid_y_n = 1000 # Pertains to cutting up the latitude
+    grid_x_n = 100 # Pertains to cutting up the longitude
+    grid_y_n = 100 # Pertains to cutting up the latitude
     
     maxNorth= ufloat(28.1724342,0.0000001)
     minSouth= ufloat(27.6463871,0.0000001)
@@ -174,15 +179,13 @@ if __name__ == "__main__":
     
     # Starting up the mapping module.
     # Necessary for figuring out what grid cells are on land or on water.
-    timemapstart = time.time()
-    print(f"{timemapstart-timestart} sec: Booting up the map")
-    bm = Basemap(width=28000000,height=28000000,
+    print(f"{timef(time.time()-timestart)} sec: Booting up the map")
+    bm = Basemap(width=280000,height=280000,
                  projection="aeqd",
                  lat_0=map_center_lat,
                  lon_0=map_center_lon,
                  resolution="f")   # default: projection='cyl'
-    timemapend= time.time()
-    print(f"{timemapend-timestart} sec: Map done loading")
+    print(f"{timef(time.time()-timestart)} sec: Map done loading")
     
     # Calculations for cell lat-lon bounds
     rangeNS = maxNorth - minSouth
@@ -207,15 +210,12 @@ if __name__ == "__main__":
             else:
                 pass
             
-            print(i,j)
+        print(f"{(i+1)*100/grid_x_n}% of grid cells checked.")
         
         
     print(f"The number of grid cells on land is {len(AllCells)} out of a possible {grid_x_n*grid_y_n}; {len(AllCells)*100/(grid_x_n*grid_y_n)}%")
-    timegridcheckend = time.time()
-    print(f"{timegridcheckend-timestart} sec: Grid cells check done")
+    print(f"{timef(time.time()-timestart)} sec: Grid cells check done. Beginning to calculate distances of grid cells to the landmarks")
     
-    timedistcheckstart = time.time()
-    print(f"{timedistcheckstart-timestart} sec: Beginning to calculate distances of grid cells to the landmarks")
     setAllRepeaterDist = list()
     setAllShelterDist = list()
     for CellInGrid in AllCells: # Actually performs the fun
@@ -225,8 +225,7 @@ if __name__ == "__main__":
         setAllRepeaterDist.append(CellInGrid.repeater_closest[1])
         setAllShelterDist.append(CellInGrid.shelter_closest[1])
     
-    timedistcheckend = time.time()
-    print(f"{timedistcheckend-timestart} sec: Distance calculations done")
+    print(f"{timef(time.time()-timestart)} sec: Distance calculations done. Beginning to calculate the percentiles")
     
     percentiles_to_calc = np.linspace(0, 100, 100+1)
     
@@ -234,9 +233,9 @@ if __name__ == "__main__":
                                                 percentiles_to_calc)
     calculated_percentiles_shel = np.percentile(setAllShelterDist,
                                                 percentiles_to_calc)
-    print(f"Percentiles to calculate: {percentiles_to_calc}")
-    print(calculated_percentiles_rept)
-    print(calculated_percentiles_shel)
+    #print(f"Percentiles to calculate: {percentiles_to_calc}")
+    #print(calculated_percentiles_rept)
+    #print(calculated_percentiles_shel)
     
     plt.plot(np.array(percentiles_to_calc),
                 np.array(calculated_percentiles_rept),
@@ -251,5 +250,5 @@ if __name__ == "__main__":
     plt.show()
 
 timeend = time.time()
-print(f"Took {timeend-timestart} seconds to finish.")
+print(f"Took {timef(timeend-timestart)} seconds to finish.")
    
