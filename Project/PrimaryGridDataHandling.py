@@ -155,18 +155,19 @@ class GridCell:
         self.shelter_closest = [name,dist_low]
         
 
-
-def timef(tofix):
-    fixed = format(tofix,".4",)
+def timef(tofix): # Formats time in seconds
+    fixed = format(tofix,".5f",)
     return fixed
+
 
 if __name__ == "__main__":
     
     # Parameters
     shelter_gps_uncert = 0.0000005 # Derived from the gps website is assumed 0.00000005
     
-    grid_x_n = 100 # Pertains to cutting up the longitude
-    grid_y_n = 100 # Pertains to cutting up the latitude
+    grid_x_n = 10000 # Pertains to cutting up the longitude
+    grid_y_n = 10000 # Pertains to cutting up the latitude
+    grid_n = grid_x_n * grid_y_n
     
     maxNorth= ufloat(28.1724342,0.0000001)
     minSouth= ufloat(27.6463871,0.0000001)
@@ -213,41 +214,47 @@ if __name__ == "__main__":
         print(f"{(i+1)*100/grid_x_n}% of grid cells checked.")
         
         
-    print(f"The number of grid cells on land is {len(AllCells)} out of a possible {grid_x_n*grid_y_n}; {len(AllCells)*100/(grid_x_n*grid_y_n)}%")
+    setsize = len(AllCells)
+    print(f"The number of grid cells on land is {setsize} out of a possible {grid_n}; {len(AllCells)*100/(grid_x_n*grid_y_n)}%")
     print(f"{timef(time.time()-timestart)} sec: Grid cells check done. Beginning to calculate distances of grid cells to the landmarks")
     
-    setAllRepeaterDist = list()
+    #setAllRepeaterDist = list()
     setAllShelterDist = list()
+    stepindex=1
     for CellInGrid in AllCells: # Actually performs the fun
-        CellInGrid.distAllRadios()
+        #CellInGrid.distAllRadios()
         CellInGrid.distAllShelters()
         
-        setAllRepeaterDist.append(CellInGrid.repeater_closest[1])
+        #setAllRepeaterDist.append(CellInGrid.repeater_closest[1])
         setAllShelterDist.append(CellInGrid.shelter_closest[1])
+        
+        print(f"{format(stepindex*100/setsize,'.4f')}% of cells' distances evaluated.")
+        stepindex+=1
     
     print(f"{timef(time.time()-timestart)} sec: Distance calculations done. Beginning to calculate the percentiles")
     
     percentiles_to_calc = np.linspace(0, 100, 100+1)
     
-    calculated_percentiles_rept = np.percentile(setAllRepeaterDist,
-                                                percentiles_to_calc)
+    #calculated_percentiles_rept = np.percentile(setAllRepeaterDist,percentiles_to_calc)
     calculated_percentiles_shel = np.percentile(setAllShelterDist,
                                                 percentiles_to_calc)
     #print(f"Percentiles to calculate: {percentiles_to_calc}")
     #print(calculated_percentiles_rept)
     #print(calculated_percentiles_shel)
     
-    plt.plot(np.array(percentiles_to_calc),
-                np.array(calculated_percentiles_rept),
-                label="Distance to Major Amateur Radio Repeaters")
+    #plt.plot(np.array(percentiles_to_calc),np.array(calculated_percentiles_rept),label="Distance to Major Amateur Radio Repeaters")
     plt.plot(np.array(percentiles_to_calc),
                 np.array(calculated_percentiles_shel),
                 label="Distance to Hurricane Shelters")
-    plt.title(f"Percentiles of the Distances from locations throughout Hillsborough County, FL. (Grid of {grid_x_n} by {grid_y_n})")
+    plt.title(f"Percentiles of the Distances from land locations throughout Hillsborough County, FL. \n(Grid of {grid_x_n} by {grid_y_n})")
     plt.xlabel("Percentile")
     plt.ylabel("Value of the Percentile (miles)")
     plt.legend()
     plt.show()
+    
+    print("Summary:")
+    print(f"Of a the {grid_x_n} by {grid_x_n} overlay of the county with a product of {grid_n} grid cells, only {setsize} cells were calculated to be over land and therefore usable.")
+
 
 timeend = time.time()
 print(f"Took {timef(timeend-timestart)} seconds to finish.")
