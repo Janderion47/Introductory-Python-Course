@@ -1,0 +1,6 @@
+Name, Age, Gender, BloodPressure, Temperature
+John Doe, 45, Male, 120/80, 36.8
+Jane Smith, 32, Female, 130/85, 37.2
+Alice Johnson, 50, Female, 140/90, 36.5
+Michael Brown, 55, Male, 135/82, 37.0
+Emily Wilson, 40, Female, 125/78, 36.9
