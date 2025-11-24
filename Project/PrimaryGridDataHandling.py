@@ -165,8 +165,8 @@ if __name__ == "__main__":
     # Parameters
     shelter_gps_uncert = 0.0000005 # Derived from the gps website is assumed 0.00000005
     
-    grid_x_n = 10000 # Pertains to cutting up the longitude
-    grid_y_n = 10000 # Pertains to cutting up the latitude
+    grid_x_n = 1000 # Pertains to cutting up the longitude
+    grid_y_n = 1000 # Pertains to cutting up the latitude
     grid_n = grid_x_n * grid_y_n
     
     maxNorth= ufloat(28.1724342,0.0000001)
