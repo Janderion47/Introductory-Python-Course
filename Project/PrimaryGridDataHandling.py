@@ -191,8 +191,8 @@ if __name__ == "__main__":
     
     
     # Calculations for cell lat-lon bounds
-    rangeNS = abs(maxNorth - minSouth)
-    rangeEW = abs(maxWest - minEast)
+    rangeNS = (maxNorth - minSouth)
+    rangeEW = (minEast - maxWest)
     delta_y = rangeNS / grid_y
     delta_x = rangeEW / grid_x
     
