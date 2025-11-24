@@ -1,6 +1,6 @@
 from uncertainties import ufloat
 from uncertainties.umath import sin, cos, atan2, sqrt
-from math import pi
+from math import pi, ceil
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -165,57 +165,63 @@ if __name__ == "__main__":
     # Parameters
     shelter_gps_uncert = 0.0000005 # Derived from the gps website is assumed 0.00000005
     
-    grid_x_n = 1000 # Pertains to cutting up the longitude
-    grid_y_n = 1000 # Pertains to cutting up the latitude
-    grid_n = grid_x_n * grid_y_n
+    grid_x = 1000 # Pertains to cutting up the longitude
+    grid_y = 1000 # Pertains to cutting up the latitude
+    grid_n = grid_x * grid_y
     
     maxNorth= ufloat(28.1724342,0.0000001)
     minSouth= ufloat(27.6463871,0.0000001)
     maxWest = ufloat(-82.6511685,0.0000001)
     minEast = ufloat(-82.0553083,0.0000001)
     
-    # Mapping Parameters
-    map_center_lat = (maxNorth.nominal_value+minSouth.nominal_value)/2
-    map_center_lon = (maxWest.nominal_value+minEast.nominal_value)/2
+    percentile_specificity = 500# 100 for all integers [0,100]
+    
+    # Mapping Coefficients
+    center_lat = (maxNorth.nominal_value+minSouth.nominal_value)/2
+    center_lon = (maxWest.nominal_value+minEast.nominal_value)/2
     
     # Starting up the mapping module.
     # Necessary for figuring out what grid cells are on land or on water.
     print(f"{timef(time.time()-timestart)} sec: Booting up the map")
-    bm = Basemap(width=280000,height=280000,
-                 projection="aeqd",
-                 lat_0=map_center_lat,
-                 lon_0=map_center_lon,
-                 resolution="f")   # default: projection='cyl'
+    bm = Basemap(width=65000,height=65000,projection='aeqd',
+                lat_0=center_lat,lon_0=center_lon,resolution="f")
+    # width&height of 65000 chosen because it as closely as possible focuses
+    # on the county.
     print(f"{timef(time.time()-timestart)} sec: Map done loading")
     
-    # Calculations for cell lat-lon bounds
-    rangeNS = maxNorth - minSouth
-    rangeEW = maxWest - minEast
     
-    delta_y = rangeNS / grid_y_n
-    delta_x = rangeEW / grid_x_n
+    # Calculations for cell lat-lon bounds
+    rangeNS = abs(maxNorth - minSouth)
+    rangeEW = abs(maxWest - minEast)
+    delta_y = rangeNS / grid_y
+    delta_x = rangeEW / grid_x
     
     
     AllCells = list()
-    for i in range(grid_x_n): # Creates the grid of geographic cells
-        for j in range(grid_y_n):
+    for i in range(grid_x): # Creates the grid of geographic cells
+        for j in range(grid_y):
             Sbound = minSouth.nominal_value + (j*delta_y.nominal_value)
             Nbound = minSouth.nominal_value + ((j+1)*delta_y.nominal_value)
             Wbound = maxWest.nominal_value + (i*delta_x.nominal_value)
             Ebound = maxWest.nominal_value + ((i+1)*delta_x.nominal_value)
-            xpt, ypt = bm((Wbound+Ebound)/2,(Nbound+Sbound)/2)
-            if bm.is_land(xpt,ypt) == True:
+            
+            xavg = (Wbound+Ebound)/2
+            yavg = (Nbound+Sbound)/2
+            
+            xpt, ypt = bm(xavg,yavg)
+            if (bm.is_land(xpt,ypt) == True) and not ((xavg < -82.575) and (yavg < 27.95)):
+                # Checks if the centroid of the grid cell is on land, and is not in the region of Pinellas County, FL.
                 AllCells.append(GridCell(Nbound,Sbound,
                                          Wbound,Ebound,
                                          shelter_gps_uncert))
             else:
                 pass
             
-        print(f"{(i+1)*100/grid_x_n}% of grid cells checked.")
+        print(f"{(i+1)*100/grid_x}% of grid cells checked.")
         
         
     setsize = len(AllCells)
-    print(f"The number of grid cells on land is {setsize} out of a possible {grid_n}; {len(AllCells)*100/(grid_x_n*grid_y_n)}%")
+    print(f"The number of grid cells on land is {setsize} out of a possible {grid_n}; {len(AllCells)*100/(grid_n)}%")
     print(f"{timef(time.time()-timestart)} sec: Grid cells check done. Beginning to calculate distances of grid cells to the landmarks")
     
     #setAllRepeaterDist = list()
@@ -228,34 +234,38 @@ if __name__ == "__main__":
         #setAllRepeaterDist.append(CellInGrid.repeater_closest[1])
         setAllShelterDist.append(CellInGrid.shelter_closest[1])
         
-        print(f"{format(stepindex*100/setsize,'.4f')}% of cells' distances evaluated.")
+        if stepindex % 10 == 0:
+            print(f"{format(stepindex*100/setsize,'.4f')}% of cells' distances evaluated.")
+        
         stepindex+=1
     
     print(f"{timef(time.time()-timestart)} sec: Distance calculations done. Beginning to calculate the percentiles")
     
-    percentiles_to_calc = np.linspace(0, 100, 100+1)
+    percentiles_to_calc = np.linspace(0, 100, percentile_specificity+1)
     
-    #calculated_percentiles_rept = np.percentile(setAllRepeaterDist,percentiles_to_calc)
-    calculated_percentiles_shel = np.percentile(setAllShelterDist,
-                                                percentiles_to_calc)
+    #rept_dist_percentiles = np.percentile(setAllRepeaterDist,percentiles_to_calc)
+    shel_dist_percentiles = np.percentile(setAllShelterDist,percentiles_to_calc)
     #print(f"Percentiles to calculate: {percentiles_to_calc}")
-    #print(calculated_percentiles_rept)
-    #print(calculated_percentiles_shel)
+    #print(rept_dist_percentiles)
+    print(shel_dist_percentiles)
     
-    #plt.plot(np.array(percentiles_to_calc),np.array(calculated_percentiles_rept),label="Distance to Major Amateur Radio Repeaters")
-    plt.plot(np.array(percentiles_to_calc),
-                np.array(calculated_percentiles_shel),
-                label="Distance to Hurricane Shelters")
-    plt.title(f"Percentiles of the Distances from land locations throughout Hillsborough County, FL. \n(Grid of {grid_x_n} by {grid_y_n})")
+    plt.figure(figsize=(10,7.5)) 
+    #plt.plot(np.array(percentiles_to_calc),np.array(rept_dist_percentiles),label="Distance to Major Amateur Radio Repeaters")
+    plt.plot(np.array(percentiles_to_calc),np.array(shel_dist_percentiles),label="Distance to Hurricane Shelters")
+    plt.title(f"Percentiles of the Distances from land locations throughout Hillsborough County, FL. \n(Grid of {grid_x} by {grid_y})")
     plt.xlabel("Percentile")
     plt.ylabel("Value of the Percentile (miles)")
     plt.legend()
     plt.show()
     
     print("Summary:")
-    print(f"Of a the {grid_x_n} by {grid_x_n} overlay of the county with a product of {grid_n} grid cells, only {setsize} cells were calculated to be over land and therefore usable.")
+    print(f"Of a the {grid_x} by {grid_y} overlay of the county with a product of {grid_n} grid cells, only {setsize} cells were calculated to be over land and therefore usable.")
+    print(f"25% of land in Hillsborough County is as close as {shel_dist_percentiles[ceil(percentile_specificity*.25)]} miles or nearer to a county hurricane shelter.")
+    print(f"50% of land in Hillsborough County is as close as {shel_dist_percentiles[ceil(percentile_specificity*.5)]} miles or nearer to a county hurricane shelter.")
+    print(f"75% of land in Hillsborough County is as close as {shel_dist_percentiles[ceil(percentile_specificity*.75)]} miles or nearer to a county hurricane shelter.")
+    print(f"The maximum distance to a shelter is {shel_dist_percentiles[percentile_specificity]}.")
 
 
 timeend = time.time()
-print(f"Took {timef(timeend-timestart)} seconds to finish.")
+print(f"Took {timef(timeend-timestart)} seconds or {timef(((timeend-timestart)/60))} minutes or {timef(((timeend-timestart)/3600))} hours to finish.")
    
