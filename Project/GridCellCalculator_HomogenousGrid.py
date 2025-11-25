@@ -108,7 +108,6 @@ def MH_to_GPS(locator): # Converting Maidenhead locator to GPS coordinates
     final_lat = lat1+lat2+lat3+lat4 - 90  # The -90 converts to real value
     return final_lat, final_lon
 
-
 def timef(tofix): # Formats time in seconds
     fixed = format(tofix,".5f",)
     return fixed
