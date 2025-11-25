@@ -91,7 +91,7 @@ def HaversineWithUncert(point1,point2,unitmeasure="m"): # Calculates distance be
 
 class GridCell:
     def __init__(self,bN,bS,bW,bE,shelterGPSuncert):
-        self.centroid = (ufloat((bN + bS)/2,abs((bN+bS)/4)),ufloat((bE + bW)/2,abs(bE + bW)/4)) # lat & lon
+        self.centroid = (ufloat((bN + bS)/2,(bN-bS)/2),ufloat((bE + bW)/2,(bE - bW)/2)) # lat & lon
         self.shelterGPS_uncert = shelterGPSuncert
     
     def distAllRadios(self):
