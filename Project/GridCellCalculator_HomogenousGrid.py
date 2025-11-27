@@ -184,9 +184,10 @@ class GridCell:
 
 
 if __name__ == "__main__":
-    desiredGridCellArea = 500**2 # Square meters; m2
-    grid_x = 120 # Pertains to cutting up the longitude
+    desiredGridCellArea = 100**2 # Square meters; m2
+    grid_x = int(120*5) # Pertains to cutting up the longitude
     shelter_gps_uncert = 0.0000005 # Derived from the gps website is assumed 0.00000005
+    # GCA of 500**2 sq meters and grid_x of 120 were good.
     
     maxNorth= ufloat(28.1724342,0.0000001)
     minSouth= ufloat(27.6463871,0.0000001)
@@ -241,7 +242,7 @@ if __name__ == "__main__":
                                          shelter_gps_uncert)
                 AllCells.append(cell)
                 plt.plot(cell.centroid[1].nominal_value,cell.centroid[0].nominal_value, ".g")
-                print(cell.sizeCell())
+                #print(cell.sizeCell())
                 #print(f"Cell added at map location {xpt},{ypt}")
             else:
                 pass

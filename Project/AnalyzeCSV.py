@@ -1,5 +1,5 @@
 import pandas as pd
-#from uncertainties import ufloat
+from uncertainties import ufloat
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,12 +11,25 @@ plt.figure(figsize=(15,10))
 
 
 distances = list()
+udist = list()
 df = pd.read_csv(TheCsvInQuestion,header=0)
+
+
 
 for index, row in df.iterrows():
     distances.append(row["Distance"])
+    udist.append(row["uDist"])
     #line_distance = ufloat(row["Distance"],row["uDist"])
     #print(line_distance)
+    
+
+sumdist = 0
+sumudist= 0
+for i in range(len(distances)):
+    sumdist += distances[i]
+    sumudist+= udist[i]
+avg_dist =sumdist/len(distances)
+avg_udist=sumudist/len(distances)
 
 thepercentiles = np.linspace(0, 100, percentile_spec+1)
 thepercentiles_major = np.linspace(0, 100, 4+1)
@@ -50,3 +63,5 @@ print("25th percentile:", percent_major_data[1])
 print("50th percentile:", percent_major_data[2])
 print("75th percentile:", percent_major_data[3])
 print("100th percentile:", percent_major_data[4])
+print("The mean average distance to a hurricane shelter is",
+      ufloat(avg_dist,avg_udist))
